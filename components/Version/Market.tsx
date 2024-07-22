@@ -1,14 +1,31 @@
-import { StatusBar, StyleSheet, SafeAreaView } from "react-native";
+import { StatusBar, StyleSheet, SafeAreaView, View } from "react-native";
 import Header from "./Header";
 import List from "./List";
 import ListCate from "./ListCate";
+import {
+  GestureHandlerRootView,
+  Gesture,
+  GestureDetector,
+} from "react-native-gesture-handler";
 
 const Market = ({ navigation }) => {
+  const swipeGesture = Gesture.Pan().onChange((e) => {
+    // console.log(e);
+  });
+
   return (
     <SafeAreaView style={styles.container}>
-      <Header />
-      <ListCate />
-      <List itemPressFn={(id) => navigation.navigate("Purchase", { id })} />
+      <GestureHandlerRootView>
+        <GestureDetector gesture={swipeGesture}>
+          <View style={{ height: "100%" }}>
+            <Header />
+            <ListCate />
+            <List
+              itemPressFn={(id) => navigation.navigate("Purchase", { id })}
+            />
+          </View>
+        </GestureDetector>
+      </GestureHandlerRootView>
       <StatusBar barStyle="light-content" />
     </SafeAreaView>
   );

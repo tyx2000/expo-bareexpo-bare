@@ -5,7 +5,10 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Modal,
+  Pressable,
 } from "react-native";
+// import { showPopupMenu } from "expo-modules-core";
 import { Image } from "expo-image";
 import { useEffect, useRef, useState } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -25,6 +28,15 @@ import * as SMS from "expo-sms";
 import * as WebBrowser from "expo-web-browser";
 import VideoPlayer from "../VideoPlayer";
 import * as MediaLibrary from "expo-media-library";
+import * as DocumentPicker from "expo-document-picker";
+import * as VideoThumbnails from "expo-video-thumbnails";
+import {
+  GestureHandlerRootView,
+  Gesture,
+  GestureDetector,
+} from "react-native-gesture-handler";
+import { RootSiblingParent } from "react-native-root-siblings";
+import Toast from "react-native-root-toast";
 
 const AnimatedImage = Animated.createAnimatedComponent(Image);
 
@@ -126,14 +138,37 @@ const Me = () => {
   const [videoUrl, setVideoUrl] = useState(null);
   const [permissionResponse, requestPermission] = MediaLibrary.usePermissions();
   const selectVideo = async () => {
-    console.log(permissionResponse);
-    if (permissionResponse.status !== "granted") {
-      await requestPermission();
-    }
-    const fetchedAlbums = await MediaLibrary.getAlbumsAsync({
-      includeSmartAlbums: true,
+    // if (permissionResponse.status !== "granted") {
+    //   await requestPermission();
+    // }
+    // const fetchedAlbums = await MediaLibrary.getAssetsAsync({
+    //   mediaType: "video",
+    // });
+    // console.log(fetchedAlbums);
+    ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Videos,
+    }).then((state) => {
+      console.log(state);
+      if (!state.canceled) {
+        const videoLink = state.assets[0].uri;
+        setVideoUrl(videoLink);
+        VideoThumbnails.getThumbnailAsync(videoUrl, { time: 15000 }).then(
+          (state) => {
+            console.log(state);
+            setDemoUrl(state.uri);
+            MediaLibrary.saveToLibraryAsync(state.uri).then((res) => {
+              console.log("saveStatus", res);
+            });
+          },
+        );
+      }
     });
-    console.log(fetchedAlbums);
+  };
+
+  const pickerAnyFile = () => {
+    DocumentPicker.getDocumentAsync().then((state) => {
+      console.log(state);
+    });
   };
 
   const openInWebBrowser = () => {
@@ -142,53 +177,103 @@ const Me = () => {
     );
   };
 
+  const someComp = () => {
+    // Alert.alert("确认删除？", "确认删除这条数据", [
+    //   {
+    //     text: "ask me later",
+    //   },
+    //   { text: "cancel" },
+    //   // { text: "ok" },
+    // ]);
+    // Share.share({ message: "hello" }).then((state) => {
+    //   console.log(state);
+    // });
+    // Vibration.vibrate([1000, 2000, 3000]);
+    Toast.show("a toast", {
+      animation: true,
+    });
+    setShowModal(true);
+  };
+
+  const forceGesture = Gesture.ForceTouch().onChange((e) => {
+    console.log({ force: e.force, forceChange: e.forceChange });
+  });
+
+  const [showModal, setShowModal] = useState(false);
+
   return (
-    <LinearGradient
-      start={[0, 0]}
-      end={[1, 0]}
-      colors={colors}
-      style={styles.container}
-    >
-      <ScrollView
-        onScroll={onScroll}
-        contentContainerStyle={styles.scrollView}
-        stickyHeaderIndices={[0]}
-      >
-        <View style={styles.imageContainer}>
-          <TouchableOpacity onPress={selectVideo}>
-            <AnimatedImage
-              source={demoURL}
-              contentFit="contain"
-              contentPosition="center"
-              alt="avatar"
-              style={[styles.avatar, animatedStyle]}
-            />
-          </TouchableOpacity>
-        </View>
-        <Text>{FileSystem.documentDirectory}</Text>
+    <GestureHandlerRootView>
+      <RootSiblingParent>
+        <LinearGradient
+          start={[0, 0]}
+          end={[1, 0]}
+          colors={colors}
+          style={styles.container}
+        >
+          <Modal visible={showModal} animationType="fade" transparent>
+            <Pressable>
+              <View
+                style={{
+                  width: 100,
+                  height: 100,
+                  borderRadius: 20,
+                  backgroundColor: "#fff",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  position: "absolute",
+                  top: "50%",
+                  left: "50%",
+                }}
+              >
+                <Text style={{ color: "red" }}>Hello</Text>
+              </View>
+            </Pressable>
+          </Modal>
+          <ScrollView
+            onScroll={onScroll}
+            contentContainerStyle={styles.scrollView}
+            stickyHeaderIndices={[0]}
+          >
+            <GestureDetector gesture={forceGesture}>
+              <View style={styles.imageContainer}>
+                <TouchableOpacity onPress={someComp} onLongPress={someComp}>
+                  <AnimatedImage
+                    source={demoURL}
+                    contentFit="contain"
+                    contentPosition="center"
+                    alt="avatar"
+                    style={[styles.avatar, animatedStyle]}
+                  />
+                </TouchableOpacity>
+              </View>
+            </GestureDetector>
+            <Text>{FileSystem.documentDirectory}</Text>
 
-        <VideoPlayer />
+            {/*<VideoPlayer videoLink={videoUrl} offsetY={offsetY} />*/}
 
-        <MaskedText />
+            <MaskedText />
 
-        <View style={styles.extra}>
-          {new Array(15).fill(0).map((_, i) => (
-            <View
-              key={i}
-              style={[
-                styles.extraItem,
-                {
-                  width: (i > 7 ? 14 - i : i + 1) * 3,
-                  opacity: (i > 7 ? 14 - i : i + 1) * 0.15,
-                  backgroundColor: colors.toReversed()[i % 4],
-                },
-              ]}
-            ></View>
-          ))}
-        </View>
-      </ScrollView>
-      <StatusBar hidden />
-    </LinearGradient>
+            <View style={styles.extra}>
+              {new Array(15).fill(0).map((_, i) => (
+                <View
+                  key={i}
+                  style={[
+                    styles.extraItem,
+                    {
+                      width: (i > 7 ? 14 - i : i + 1) * 3,
+                      opacity: (i > 7 ? 14 - i : i + 1) * 0.15,
+                      backgroundColor: colors.toReversed()[i % 4],
+                    },
+                  ]}
+                ></View>
+              ))}
+            </View>
+          </ScrollView>
+
+          <StatusBar hidden />
+        </LinearGradient>
+      </RootSiblingParent>
+    </GestureHandlerRootView>
   );
 };
 
@@ -197,6 +282,7 @@ export default Me;
 const styles = StyleSheet.create({
   container: {
     height: "100%",
+    position: "relative",
     // backgroundColor: "#0F0E15",
   },
   scrollView: {
