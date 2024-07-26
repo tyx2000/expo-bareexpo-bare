@@ -7,6 +7,8 @@ import {
   View,
   Modal,
   Pressable,
+  Button,
+  useWindowDimensions,
 } from "react-native";
 // import { showPopupMenu } from "expo-modules-core";
 import { Image } from "expo-image";
@@ -15,11 +17,13 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
+  withSpring,
   withTiming,
 } from "react-native-reanimated";
 import { LinearGradient } from "expo-linear-gradient";
 import * as FileSystem from "expo-file-system";
 import MaskedText from "../MaskedView/MaskedText";
+import ContextMenu from "../ContextMenu";
 
 import * as Notifications from "expo-notifications";
 import * as Sharing from "expo-sharing";
@@ -35,8 +39,11 @@ import {
   Gesture,
   GestureDetector,
 } from "react-native-gesture-handler";
-import { RootSiblingParent } from "react-native-root-siblings";
-import Toast from "react-native-root-toast";
+import { Audio } from "expo-av";
+
+import LayoutTransition from "../LayoutTransition";
+import TodoList from "../Swiper/TodoList";
+import Carousel from "../Swiper/Carousel";
 
 const AnimatedImage = Animated.createAnimatedComponent(Image);
 
@@ -168,6 +175,16 @@ const Me = () => {
   const pickerAnyFile = () => {
     DocumentPicker.getDocumentAsync().then((state) => {
       console.log(state);
+      if (!state.canceled) {
+        Audio.Sound.createAsync({ uri: state.assets[0].uri }).then(
+          (soundRes) => {
+            console.log(soundRes);
+            if (soundRes.sound) {
+              soundRes.sound.playAsync();
+            }
+          },
+        );
+      }
     });
   };
 
@@ -189,90 +206,77 @@ const Me = () => {
     //   console.log(state);
     // });
     // Vibration.vibrate([1000, 2000, 3000]);
-    Toast.show("a toast", {
-      animation: true,
-    });
-    setShowModal(true);
+    // Toast.show("a toast", {
+    //   animation: true,
+    // });
+    // setShowModal(true);
   };
 
   const forceGesture = Gesture.ForceTouch().onChange((e) => {
-    console.log({ force: e.force, forceChange: e.forceChange });
+    console.log(e.force > 0.4);
+    // console.log({ force: e.force, forceChange: e.forceChange });
   });
 
   const [showModal, setShowModal] = useState(false);
 
+  const onViewLayout = (e) => {
+    console.log(e.nativeEvent);
+  };
+
   return (
     <GestureHandlerRootView>
-      <RootSiblingParent>
-        <LinearGradient
-          start={[0, 0]}
-          end={[1, 0]}
-          colors={colors}
-          style={styles.container}
+      <LinearGradient
+        start={[0, 0]}
+        end={[1, 0]}
+        colors={colors}
+        style={styles.container}
+      >
+        <ScrollView
+          onScroll={onScroll}
+          contentContainerStyle={styles.scrollView}
+          stickyHeaderIndices={[0]}
         >
-          <Modal visible={showModal} animationType="fade" transparent>
-            <Pressable>
+          <GestureDetector gesture={forceGesture}>
+            <Animated.View style={[styles.imageContainer]}>
+              <TouchableOpacity onPress={pickerAnyFile} onLongPress={someComp}>
+                <AnimatedImage
+                  source={demoURL}
+                  contentFit="contain"
+                  contentPosition="center"
+                  alt="avatar"
+                  style={[styles.avatar, animatedStyle]}
+                />
+              </TouchableOpacity>
+            </Animated.View>
+          </GestureDetector>
+          {/*<TodoList />*/}
+
+          {/*<Carousel />*/}
+          <Text>{FileSystem.documentDirectory}</Text>
+
+          {/*<VideoPlayer videoLink={videoUrl} offsetY={offsetY} />*/}
+
+          <MaskedText />
+
+          <View style={styles.extra}>
+            {new Array(15).fill(0).map((_, i) => (
               <View
-                style={{
-                  width: 100,
-                  height: 100,
-                  borderRadius: 20,
-                  backgroundColor: "#fff",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  position: "absolute",
-                  top: "50%",
-                  left: "50%",
-                }}
-              >
-                <Text style={{ color: "red" }}>Hello</Text>
-              </View>
-            </Pressable>
-          </Modal>
-          <ScrollView
-            onScroll={onScroll}
-            contentContainerStyle={styles.scrollView}
-            stickyHeaderIndices={[0]}
-          >
-            <GestureDetector gesture={forceGesture}>
-              <View style={styles.imageContainer}>
-                <TouchableOpacity onPress={someComp} onLongPress={someComp}>
-                  <AnimatedImage
-                    source={demoURL}
-                    contentFit="contain"
-                    contentPosition="center"
-                    alt="avatar"
-                    style={[styles.avatar, animatedStyle]}
-                  />
-                </TouchableOpacity>
-              </View>
-            </GestureDetector>
-            <Text>{FileSystem.documentDirectory}</Text>
+                key={i}
+                style={[
+                  styles.extraItem,
+                  {
+                    width: (i > 7 ? 14 - i : i + 1) * 3,
+                    opacity: (i > 7 ? 14 - i : i + 1) * 0.15,
+                    backgroundColor: colors.toReversed()[i % 4],
+                  },
+                ]}
+              ></View>
+            ))}
+          </View>
+        </ScrollView>
 
-            {/*<VideoPlayer videoLink={videoUrl} offsetY={offsetY} />*/}
-
-            <MaskedText />
-
-            <View style={styles.extra}>
-              {new Array(15).fill(0).map((_, i) => (
-                <View
-                  key={i}
-                  style={[
-                    styles.extraItem,
-                    {
-                      width: (i > 7 ? 14 - i : i + 1) * 3,
-                      opacity: (i > 7 ? 14 - i : i + 1) * 0.15,
-                      backgroundColor: colors.toReversed()[i % 4],
-                    },
-                  ]}
-                ></View>
-              ))}
-            </View>
-          </ScrollView>
-
-          <StatusBar hidden />
-        </LinearGradient>
-      </RootSiblingParent>
+        <StatusBar hidden />
+      </LinearGradient>
     </GestureHandlerRootView>
   );
 };
