@@ -12,13 +12,23 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSCameraUsageDescription": "Allow $(PRODUCT_NAME) to access your camera"
+      },
+      "bundleIdentifier": "com.tyxu4459.expobare"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE"
+      ],
+      "package": "com.tyxu4459.expobare"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -32,6 +42,12 @@
           "savePhotosPermission": "Allow $(PRODUCT_NAME) to save photos."
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "a2bd83d3-1816-4562-96d3-ae6a56fa4f87"
+      }
+    },
+    "owner": "tyxu4459"
   }
 }

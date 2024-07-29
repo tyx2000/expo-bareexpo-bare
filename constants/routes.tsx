@@ -16,6 +16,7 @@ import { ContinuousScrolled } from "../components/reader/ContinuousScrolled";
 import WithSlider from "../components/reader/WithSlider";
 import VersionLayout from "../components/Version/Layout";
 import DrawerRoot from "../components/Drawer/DrawerRoot";
+import FollowLayout from "../components/Follow/FollowLayout";
 
 export const routes = [
   {
@@ -23,6 +24,12 @@ export const routes = [
     description: "Meta Version",
     route: "Version",
     component: VersionLayout,
+  },
+  {
+    title: "Follow",
+    description: "Follow RSS Reader",
+    route: "Follow",
+    component: FollowLayout,
   },
   {
     title: "Drawer",

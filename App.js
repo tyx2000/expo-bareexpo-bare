@@ -18,6 +18,7 @@ import "react-native-reanimated";
 import VersionLayout from "./components/Version/Layout";
 import Purchase from "./components/Purchase";
 import { Fragment } from "react";
+import FollowLayout from "./components/Follow/FollowLayout";
 
 const RootStack = createNativeStackNavigator();
 
@@ -61,6 +62,7 @@ export default function App() {
       <SafeAreaProvider>
         <NavigationContainer>
           <RootStack.Navigator
+            gestureEnabled
             initialRouteName="Menus"
             options={{ headerShown: false }}
           >
@@ -74,11 +76,16 @@ export default function App() {
               component={VersionLayout}
               options={{ title: "Version", headerShown: false }}
             />
+            <RootStack.Screen
+              name="Follow"
+              component={FollowLayout}
+              options={{ title: "Follow", headerShown: false }}
+            />
             <RootStack.Group screenOptions={{ presentation: "modal" }}>
               <RootStack.Screen name="Purchase" component={Purchase} />
             </RootStack.Group>
             <RootStack.Group screenOptions={{ presentation: "modal" }}>
-              {routes.slice(1).map(({ title, route, component }) => (
+              {routes.slice(2).map(({ title, route, component }) => (
                 <RootStack.Screen
                   key={route}
                   name={route}
