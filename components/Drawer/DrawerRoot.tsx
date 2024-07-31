@@ -1,5 +1,7 @@
 import { createDrawerNavigator } from "@react-navigation/drawer";
-import { Text } from "react-native";
+import { Button, Text, View } from "react-native";
+import { NavigationContainer } from "@react-navigation/native";
+import { createContext, useContext, useMemo, useState } from "react";
 
 const Drawer = createDrawerNavigator();
 
@@ -18,3 +20,49 @@ const DrawerRoot = () => (
 );
 
 export default DrawerRoot;
+
+// const RightDrawerContext = createContext({});
+//
+// const HomeScreen = ({ navigation }) => {
+//   const { openRightDrawer } = useContext(RightDrawerContext);
+//   return (
+//     <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+//       <Button
+//         onPress={() => navigation.openDrawer()}
+//         title="open left drawer"
+//       />
+//       <Button onPress={() => openRightDrawer()} title="open right drawer" />
+//     </View>
+//   );
+// };
+//
+// const LeftDrawer = createDrawerNavigator();
+// const RightDrawer = createDrawerNavigator();
+// const LeftDrawerScreen = () => (
+//   <LeftDrawer.Navigator screenOptions={{ drawerPosition: "left" }}>
+//     <LeftDrawer.Screen name="Home" component={HomeScreen} />
+//   </LeftDrawer.Navigator>
+// );
+// const RightDrawerScreen = () => {
+//   const [rightDrawerOpen, setRightDrawerOpen] = useState(false);
+//
+//   const value = useMemo(
+//     () => ({
+//       openRightDrawer: () => setRightDrawerOpen(true),
+//       closeRightDrawer: () => setRightDrawerOpen(false),
+//     }),
+//     [],
+//   );
+//
+//   return (
+//     // <RightDrawerContext.Provider value={value}>
+//       <RightDrawer.Navigator screenOptions={{ drawerPosition: "right" }}>
+//         <RightDrawer.Screen name="HomeDrawer" component={LeftDrawerScreen} />
+//       </RightDrawer.Navigator>
+//     // </RightDrawerContext.Provider>
+//   );
+// };
+//
+// const MultiDrawer = () => <RightDrawerScreen />;
+//
+// export default MultiDrawer;

@@ -17,6 +17,7 @@ import WithSlider from "../components/reader/WithSlider";
 import VersionLayout from "../components/Version/Layout";
 import DrawerRoot from "../components/Drawer/DrawerRoot";
 import FollowLayout from "../components/Follow/FollowLayout";
+import InstagramLayout from "../components/Instagram/Layout";
 
 export const routes = [
   {
@@ -30,6 +31,13 @@ export const routes = [
     description: "Follow RSS Reader",
     route: "Follow",
     component: FollowLayout,
+  },
+  {
+    title: "instagram",
+    description: "Instagram mutation",
+    route: "Instagram",
+    initScreen: "HOME",
+    component: InstagramLayout,
   },
   {
     title: "Drawer",

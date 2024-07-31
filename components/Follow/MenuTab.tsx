@@ -7,6 +7,10 @@ import ReAnimated, {
   useAnimatedStyle,
 } from "react-native-reanimated";
 import { useEffect } from "react";
+import { LinearGradient } from "expo-linear-gradient";
+
+const ReAnimatedLinearGradient =
+  ReAnimated.createAnimatedComponent(LinearGradient);
 
 const menuTabs = ["#C20114", "#39A2AE", "#CBA135", "#23CE6B", "#090C02"].map(
   (d) => ({
@@ -16,28 +20,25 @@ const menuTabs = ["#C20114", "#39A2AE", "#CBA135", "#23CE6B", "#090C02"].map(
   }),
 );
 
-const MenuTab = ({ routeTo }) => {
+const MenuTab = ({ routeName, routeTo }) => {
   const { width } = useWindowDimensions();
 
   const animatedOffsetY = useSharedValue(100);
-  const animatedRotate = useSharedValue("90deg");
   useEffect(() => {
-    animatedRotate.value = withDelay(
-      100,
-      withSpring("0deg", { duration: 1000 }),
-    );
-    animatedOffsetY.value = withDelay(100, withSpring(0));
+    animatedOffsetY.value = withDelay(100, withTiming(0, { duration: 1000 }));
   }, []);
 
   return (
-    <ReAnimated.View
+    <ReAnimatedLinearGradient
+      colors={["lightyellow", routeName, "purple"]}
+      start={[1, 1]}
+      end={[0, 0]}
       style={[
         styles.container,
         {
           transform: [
             { translateX: -width * 0.4 },
             { translateY: animatedOffsetY },
-            { rotateX: animatedRotate },
           ],
         },
       ]}
@@ -49,7 +50,7 @@ const MenuTab = ({ routeTo }) => {
           ></View>
         </Pressable>
       ))}
-    </ReAnimated.View>
+    </ReAnimatedLinearGradient>
   );
 };
 
@@ -67,9 +68,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 7,
     borderRadius: 20,
-    shadowColor: "#ccc",
-    shadowOffset: { width: 2, height: 2 },
-    shadowOpacity: 0.8,
+    // shadowColor: "#000",
+    // shadowOffset: { width: 15, height: 15 },
+    // shadowOpacity: 0.8,
+    // shadowRadius: 15,
   },
   tabItem: {
     width: 40,

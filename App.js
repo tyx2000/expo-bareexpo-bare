@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   useColorScheme,
   StatusBar,
+  View,
 } from "react-native";
 import { PaperProvider, MD3DarkTheme, MD3LightTheme } from "react-native-paper";
 import {
@@ -18,7 +19,9 @@ import "react-native-reanimated";
 import VersionLayout from "./components/Version/Layout";
 import Purchase from "./components/Purchase";
 import { Fragment } from "react";
-import FollowLayout from "./components/Follow/FollowLayout";
+import Layout from "./components/Follow/Layout";
+import InstagramLayout from "./components/Instagram/Layout";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 const RootStack = createNativeStackNavigator();
 
@@ -36,11 +39,17 @@ const Menus = () => {
         }}
         showsVerticalScrollIndicator={false}
       >
-        {routes.map(({ title, description, route }) => (
+        {routes.map(({ title, description, route, initScreen }) => (
           <TouchableOpacity
             style={styles.button}
             key={route}
-            onPress={() => navigate(route)}
+            onPress={() => {
+              if (initScreen) {
+                navigate(route, { screen: initScreen });
+              } else {
+                navigate(route);
+              }
+            }}
           >
             <Text>{title}</Text>
             <Text>{description}</Text>
@@ -60,45 +69,54 @@ export default function App() {
       theme={colorScheme === "dark" ? MD3DarkTheme : MD3LightTheme}
     >
       <SafeAreaProvider>
-        <NavigationContainer>
-          <RootStack.Navigator
-            gestureEnabled
-            initialRouteName="Menus"
-            options={{ headerShown: false }}
-          >
-            <RootStack.Screen
-              name="Menus"
-              component={Menus}
-              options={{ title: "Menus" }}
-            />
-            <RootStack.Screen
-              name="Version"
-              component={VersionLayout}
-              options={{ title: "Version", headerShown: false }}
-            />
-            <RootStack.Screen
-              name="Follow"
-              component={FollowLayout}
-              options={{ title: "Follow", headerShown: false }}
-            />
-            <RootStack.Group screenOptions={{ presentation: "modal" }}>
-              <RootStack.Screen name="Purchase" component={Purchase} />
-            </RootStack.Group>
-            <RootStack.Group screenOptions={{ presentation: "modal" }}>
-              {routes.slice(2).map(({ title, route, component }) => (
-                <RootStack.Screen
-                  key={route}
-                  name={route}
-                  options={{
-                    title,
-                    headerShown: false,
-                  }}
-                  component={component}
-                />
-              ))}
-            </RootStack.Group>
-          </RootStack.Navigator>
-        </NavigationContainer>
+        <GestureHandlerRootView>
+          <NavigationContainer>
+            <RootStack.Navigator
+              initialRouteName="Menus"
+              options={{ headerShown: false }}
+              screenOptions={{
+                gestureEnabled: true,
+              }}
+            >
+              <RootStack.Screen
+                name="Menus"
+                component={Menus}
+                options={{ title: "Menus" }}
+              />
+              <RootStack.Screen
+                name="Version"
+                component={VersionLayout}
+                options={{ title: "Version", headerShown: false }}
+              />
+              <RootStack.Screen
+                name="Follow"
+                component={Layout}
+                options={{ title: "Follow", headerShown: false }}
+              />
+              <RootStack.Group screenOptions={{ presentation: "modal" }}>
+                <RootStack.Screen name="Purchase" component={Purchase} />
+              </RootStack.Group>
+              <RootStack.Screen
+                name="Instagram"
+                component={InstagramLayout}
+                options={{ headerShown: false }}
+              />
+              <RootStack.Group screenOptions={{ presentation: "modal" }}>
+                {routes.slice(3).map(({ title, route, component }) => (
+                  <RootStack.Screen
+                    key={route}
+                    name={route}
+                    options={{
+                      title,
+                      headerShown: false,
+                    }}
+                    component={component}
+                  />
+                ))}
+              </RootStack.Group>
+            </RootStack.Navigator>
+          </NavigationContainer>
+        </GestureHandlerRootView>
       </SafeAreaProvider>
     </PaperProvider>
   );
