@@ -27,6 +27,7 @@ const Layout = ({ route }) => {
     offsetX.value = withTiming(-width);
   };
   const panGesture = Gesture.Pan()
+    .onStart((e) => console.log("pan start"))
     .onChange((e) => {
       if (
         offsetX.value === 0 ||
@@ -56,54 +57,54 @@ const Layout = ({ route }) => {
     });
 
   return (
-    <GestureDetector gesture={panGesture}>
-      <ReAnimated.View
-        style={[
-          styles.container,
-          {
-            width: width * 3,
-            height,
-            transform: [{ translateX: offsetX }],
-          },
-        ]}
-      >
-        <ReAnimated.View
-          style={{
-            width,
-            height,
-            backgroundColor: "purple",
-            paddingTop: insets.top,
-            opacity: animatedLeftOpacity,
-          }}
-        >
-          <Button title="Back" onPress={backToHome} />
-        </ReAnimated.View>
-        <View style={{ width, height, backgroundColor: "orange" }}>
-          <Tabs.Navigator
-            tabBar={({ state, navigation }) => (
-              <TabBar state={state} navigation={navigation} />
-            )}
-            screenOptions={{ headerShown: false }}
-          >
-            <Tabs.Screen name="HOME" component={Home} />
-            <Tabs.Screen name="SEAR" component={Sear} />
-            <Tabs.Screen name="UPLO" component={Uplo} />
-            <Tabs.Screen name="VIDE" component={Vide} />
-            <Tabs.Screen name="MEME" component={Meme} />
-          </Tabs.Navigator>
-        </View>
-        <View
-          style={{
-            width,
-            height,
-            backgroundColor: "pink",
-            paddingTop: insets.top,
-          }}
-        >
-          <Button title="back" onPress={backToHome} />
-        </View>
-      </ReAnimated.View>
-    </GestureDetector>
+    // <GestureDetector gesture={panGesture}>
+    //   <ReAnimated.View
+    //     style={[
+    //       styles.container,
+    //       {
+    //         width: width * 3,
+    //         height,
+    //         transform: [{ translateX: offsetX }],
+    //       },
+    //     ]}
+    //   >
+    //     <ReAnimated.View
+    //       style={{
+    //         width,
+    //         height,
+    //         backgroundColor: "purple",
+    //         paddingTop: insets.top,
+    //         opacity: animatedLeftOpacity,
+    //       }}
+    //     >
+    //       <Button title="Back" onPress={backToHome} />
+    //     </ReAnimated.View>
+    //     <View style={{ width, height, backgroundColor: "orange" }}>
+    <Tabs.Navigator
+      tabBar={({ state, navigation }) => (
+        <TabBar state={state} navigation={navigation} />
+      )}
+      screenOptions={{ headerShown: false }}
+    >
+      <Tabs.Screen name="HOME" component={Home} />
+      <Tabs.Screen name="SEAR" component={Sear} />
+      <Tabs.Screen name="UPLO" component={Uplo} />
+      <Tabs.Screen name="VIDE" component={Vide} />
+      <Tabs.Screen name="MEME" component={Meme} />
+    </Tabs.Navigator>
+    //     </View>
+    //     <View
+    //       style={{
+    //         width,
+    //         height,
+    //         backgroundColor: "pink",
+    //         paddingTop: insets.top,
+    //       }}
+    //     >
+    //       <Button title="back" onPress={backToHome} />
+    //     </View>
+    //   </ReAnimated.View>
+    // </GestureDetector>
   );
 };
 

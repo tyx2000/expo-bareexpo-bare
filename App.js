@@ -5,7 +5,6 @@ import {
   TouchableOpacity,
   useColorScheme,
   StatusBar,
-  View,
 } from "react-native";
 import { PaperProvider, MD3DarkTheme, MD3LightTheme } from "react-native-paper";
 import {
@@ -13,6 +12,11 @@ import {
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
 import { NavigationContainer, useNavigation } from "@react-navigation/native";
+import {
+  createStackNavigator,
+  TransitionPresets,
+  CardStyleInterpolators,
+} from "@react-navigation/stack";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { routes } from "./constants/routes";
 import "react-native-reanimated";
@@ -23,7 +27,7 @@ import Layout from "./components/Follow/Layout";
 import InstagramLayout from "./components/Instagram/Layout";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
-const RootStack = createNativeStackNavigator();
+const RootStack = createStackNavigator();
 
 const Menus = () => {
   const { navigate } = useNavigation();
@@ -91,7 +95,16 @@ export default function App() {
               <RootStack.Screen
                 name="Follow"
                 component={Layout}
-                options={{ title: "Follow", headerShown: false }}
+                options={{
+                  title: "Follow",
+                  headerShown: false,
+                  // cardStyleInterpolator:
+                  //   CardStyleInterpolators.forFadeFromCenter,
+                  // transitionSpec: {
+                  //   open: TransitionPresets.SlideFromRightIOS,
+                  //   close: TransitionPresets.ModalFadeTransition,
+                  // },
+                }}
               />
               <RootStack.Group screenOptions={{ presentation: "modal" }}>
                 <RootStack.Screen name="Purchase" component={Purchase} />
