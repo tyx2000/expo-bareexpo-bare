@@ -9,15 +9,22 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import ReAnimated, {
+  BounceIn,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
   ZoomIn,
+  RollInRight,
+  FlipInEasyX,
+  StretchInX,
+  BounceOut,
+  withSpring,
 } from "react-native-reanimated";
 import { useEffect, useState } from "react";
 
 import * as ImagePicker from "expo-image-picker";
 import { manipulateAsync, SaveFormat } from "expo-image-manipulator";
+import { StretchIn } from "react-native-reanimated/lib/typescript/reanimated2/layoutReanimation/web/animation/Stretch.web";
 
 const INITIAL_LIST = [
   { id: 1, emoji: "🍌", color: "#b58df1" },
@@ -31,42 +38,58 @@ const INITIAL_LIST = [
   { id: 9, emoji: "🍩", color: "#82cab2" },
 ];
 
-const Item = ({ item, width, height, current, setCurrent, index }) => {
-  const sharedSize = useSharedValue({ width, height: width });
+const Item = ({
+  index,
+  current,
+  uri,
+  width,
+  height,
+  itemOffsets,
+  pressToMove,
+}) => {
+  const opacity = useSharedValue(1);
+  const offset = useSharedValue({ x: 0, y: 0 });
 
   const animatedStyle = useAnimatedStyle(() => ({
-    width: sharedSize.value.width,
-    height: sharedSize.value.height,
+    opacity: withTiming(current === index ? 0 : 1, { duration: 1000 }),
+    // @ts-ignore
+    transform: [{ translateX: offset.value.x }, { translateY: offset.value.y }],
   }));
 
   useEffect(() => {
-    const isCurrent = item.id === current;
-    sharedSize.value = withTiming({
-      width: isCurrent ? width * 3 : width,
-      height: isCurrent ? height : width,
+    Object.keys(itemOffsets).forEach((key) => {
+      const value = itemOffsets[key];
+      offset.value = withTiming({
+        x: index + "" === key ? value.x : 0,
+        y: index + "" === key ? value.y : 0,
+      });
     });
-  }, [current]);
+  }, [JSON.stringify(itemOffsets)]);
 
   return (
     <TouchableOpacity
-      onPress={() => setCurrent((c) => (item.id === c ? -1 : item.id))}
+      style={{
+        transform: [
+          { translateX: itemOffsets[index]?.x || 0 },
+          { translateY: itemOffsets[index]?.y || 0 },
+        ],
+      }}
+      key={uri + index}
+      onPress={() => pressToMove(index)}
     >
-      <ReAnimated.View
-        entering={ZoomIn}
+      <ReAnimated.Image
+        source={{ uri }}
+        entering={BounceIn}
+        exiting={BounceOut}
         style={[
           {
-            backgroundColor: item.color,
-            // transform: [
-            //   { translateX: width * (index % 3) },
-            //   { translateY: width * Math.floor(index / 3) },
-            // ],
+            width,
+            height,
           },
-          styles.item,
+          // @ts-ignore
           animatedStyle,
         ]}
-      >
-        <Text style={styles.contentText}>{item.emoji}</Text>
-      </ReAnimated.View>
+      />
     </TouchableOpacity>
   );
 };
@@ -76,6 +99,8 @@ const Home = () => {
   const { width, height } = useWindowDimensions();
 
   const [clippedImageArray, setClippedImageArray] = useState([]);
+  const [renderSize, setRenderSize] = useState({ width: 0, height: 0 });
+  const [itemOffsets, setItemOffsets] = useState({});
 
   const pickImage = () =>
     ImagePicker.launchImageLibraryAsync().then((state) => {
@@ -86,53 +111,79 @@ const Home = () => {
           uri,
         } = state.assets[0];
         const clipWidth = originWidth / 4,
-          clipHeight = originHeight / 7;
-        for (let i = 0; i < 4; i++) {
-          for (let j = 0; j < 7; j++) {
-            manipulateAsync(
-              uri,
-              [
-                {
-                  crop: {
-                    originX: i * clipWidth,
-                    originY: j * clipHeight,
-                    width: clipWidth,
-                    height: clipHeight,
+          clipHeight = originHeight / 8;
+        const renderWidth = width / 4,
+          renderHeight = (clipHeight / clipWidth) * renderWidth;
+
+        setRenderSize({ width: renderWidth, height: renderHeight });
+
+        const clipPromises = [];
+        for (let i = 0; i < 8; i++) {
+          for (let j = 0; j < 4; j++) {
+            clipPromises.push(
+              manipulateAsync(
+                uri,
+                [
+                  {
+                    crop: {
+                      originX: j * clipWidth,
+                      originY: i * clipHeight,
+                      width: clipWidth,
+                      height: clipHeight,
+                    },
                   },
-                },
-              ],
-              {
-                compress: 1,
-                format: SaveFormat.PNG,
-              },
-            ).then((res) =>
-              setClippedImageArray((c) => [
-                ...c,
+                ],
                 {
-                  i,
-                  j,
-                  uri: res.uri,
-                  width: width / 4,
-                  height: (res.height / res.width) * (width / 4),
+                  compress: 1,
+                  format: SaveFormat.PNG,
                 },
-              ]),
+              ),
             );
           }
         }
+        Promise.all(clipPromises).then((res) => {
+          const opacityIndex = Math.floor(Math.random() * 31);
+          setCurrent(opacityIndex);
+          setNewCurrent(opacityIndex);
+          setClippedImageArray(
+            res.map((item) => ({
+              uri: item.uri,
+              width: renderWidth,
+              height: renderHeight,
+            })),
+          );
+        });
       }
     });
 
-  const mixImages = () => {
-    const temp = clippedImageArray;
-    let index = 0;
-    for (let i = 3; i > -1; i--) {
-      for (let j = 6; j > -1; j--) {
-        console.log(i, j);
-        temp[index] = { ...temp[0], i, j };
-        index++;
-      }
+  const [current, setCurrent] = useState<number>();
+  const [newCurrent, setNewCurrent] = useState<number>();
+
+  const pressToMove = (index: number) => {
+    // 要添加边界验证
+    const moveableIndex = [
+      newCurrent - 4,
+      newCurrent + 4,
+      newCurrent % 4 === 0 ? -1 : newCurrent - 1,
+      newCurrent % 4 === 3 ? -1 : newCurrent + 1,
+    ];
+    const moveDirection = moveableIndex.indexOf(index);
+    console.log(index, moveDirection, moveableIndex, newCurrent, itemOffsets);
+    if (moveDirection > -1) {
+      const offset = [
+        { x: 0, y: renderSize.height },
+        { x: 0, y: -renderSize.height },
+        { x: renderSize.width, y: 0 },
+        { x: -renderSize.width, y: 0 },
+      ];
+      const currentMove = { 0: 1, 1: 0, 2: 3, 3: 2 };
+      setNewCurrent(index);
+      setItemOffsets((c) => ({
+        ...c,
+        [index]: offset[moveDirection],
+        [newCurrent]: offset[currentMove[moveDirection]],
+      }));
     }
-    // setClippedImageArray(temp);
   };
 
   return (
@@ -141,17 +192,16 @@ const Home = () => {
     >
       <View style={styles.images}>
         {clippedImageArray.length ? (
-          clippedImageArray.map(({ width, height, uri, i, j }) => (
-            <ReAnimated.Image
-              key={`${i}-${j}`}
-              source={{ uri }}
-              entering={ZoomIn}
-              style={{
+          clippedImageArray.map(({ width, height, uri }, index) => (
+            <Item
+              {...{
+                uri,
                 width,
                 height,
-                position: "absolute",
-                top: j * height,
-                left: i * width,
+                index,
+                current,
+                itemOffsets,
+                pressToMove,
               }}
             />
           ))
@@ -168,7 +218,14 @@ const Home = () => {
             <Text style={styles.pickImageText}>PICK IMAGE</Text>
           </View>
         </TouchableOpacity>
-        <TouchableOpacity onPress={mixImages}>
+        <TouchableOpacity
+          onPress={() =>
+            setClippedImageArray((c) => {
+              console.log(c.reverse());
+              return c.reverse();
+            })
+          }
+        >
           <View style={styles.pickImageButton}>
             <Text style={styles.pickImageText}>RANDOM</Text>
           </View>
