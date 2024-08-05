@@ -24,7 +24,6 @@ import { useEffect, useState } from "react";
 
 import * as ImagePicker from "expo-image-picker";
 import { manipulateAsync, SaveFormat } from "expo-image-manipulator";
-import { StretchIn } from "react-native-reanimated/lib/typescript/reanimated2/layoutReanimation/web/animation/Stretch.web";
 
 const INITIAL_LIST = [
   { id: 1, emoji: "🍌", color: "#b58df1" },
