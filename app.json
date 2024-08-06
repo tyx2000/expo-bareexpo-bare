@@ -34,7 +34,22 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "react-native-vision-camera",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "$(PRODUCT_NAME) needs access to your camera",
+          "microphonePermission": "$(PRODUCT_NAME) needs access to you microphone",
+          "enableMicrophonePermission": true
+        }
+      ],
+      [
+        "react-native-vision-camera",
+        {
+          "cameraPermissionText": "$(PRODUCT_NAME) needs access to your camera",
+          "enableMicrophonePermission": true,
+          "microphonePermissionText": "$(PRODUCT_NAME) needs access to you microphone"
+        }
+      ],
       [
         "expo-media-library",
         {
