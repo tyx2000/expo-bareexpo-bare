@@ -46,6 +46,7 @@ const Item = ({
   itemOffsets,
   pressToMove,
 }) => {
+  const { width: deviceWidth } = useWindowDimensions();
   const opacity = useSharedValue(1);
   const offset = useSharedValue({ x: 0, y: 0 });
 
@@ -76,19 +77,24 @@ const Item = ({
       key={uri + index}
       onPress={() => pressToMove(index)}
     >
-      <ReAnimated.Image
-        source={{ uri }}
-        entering={BounceIn}
-        exiting={BounceOut}
-        style={[
-          {
-            width,
-            height,
-          },
-          // @ts-ignore
-          animatedStyle,
-        ]}
-      />
+      <View style={{ width, height, padding: 2 }}>
+        <ReAnimated.Image
+          source={{ uri }}
+          entering={BounceIn}
+          exiting={BounceOut}
+          style={[
+            {
+              // width,
+              // height,
+              width: "100%",
+              height: "100%",
+              borderRadius: 10,
+            },
+            // @ts-ignore
+            animatedStyle,
+          ]}
+        />
+      </View>
     </TouchableOpacity>
   );
 };
@@ -109,15 +115,15 @@ const Home = () => {
           height: originHeight,
           uri,
         } = state.assets[0];
-        const clipWidth = originWidth / 4,
-          clipHeight = originHeight / 8;
-        const renderWidth = width / 4,
-          renderHeight = (clipHeight / clipWidth) * renderWidth;
+        const clipWidth = Math.floor(originWidth / 4),
+          clipHeight = Math.floor(originHeight / 4);
+        const renderWidth = Math.floor(width / 4),
+          renderHeight = Math.floor((clipHeight / clipWidth) * renderWidth);
 
         setRenderSize({ width: renderWidth, height: renderHeight });
 
         const clipPromises = [];
-        for (let i = 0; i < 8; i++) {
+        for (let i = 0; i < 4; i++) {
           for (let j = 0; j < 4; j++) {
             clipPromises.push(
               manipulateAsync(
@@ -141,7 +147,7 @@ const Home = () => {
           }
         }
         Promise.all(clipPromises).then((res) => {
-          const opacityIndex = Math.floor(Math.random() * 31);
+          const opacityIndex = Math.floor(Math.random() * 15);
           setCurrent(opacityIndex);
           setNewCurrent(opacityIndex);
           setClippedImageArray(
@@ -166,23 +172,70 @@ const Home = () => {
       newCurrent % 4 === 0 ? -1 : newCurrent - 1,
       newCurrent % 4 === 3 ? -1 : newCurrent + 1,
     ];
+    // 0 下移 1 上移 2 右移 3 左移
     const moveDirection = moveableIndex.indexOf(index);
-    console.log(index, moveDirection, moveableIndex, newCurrent, itemOffsets);
-    if (moveDirection > -1) {
-      const offset = [
+    console.log(
+      "点击目标索引",
+      index,
+      "移动方向",
+      moveDirection,
+      "可移动索引",
+      moveableIndex,
+      "当前空白索引",
+      newCurrent,
+      "各项偏移",
+      itemOffsets,
+    );
+    const offset = [
         { x: 0, y: renderSize.height },
         { x: 0, y: -renderSize.height },
         { x: renderSize.width, y: 0 },
         { x: -renderSize.width, y: 0 },
+      ],
+      currentMove = { 0: 1, 1: 0, 2: 3, 3: 2 };
+    if (moveDirection > -1) {
+      const [prevIndex = {}, prevNewCurrent = {}] = [
+        itemOffsets[index],
+        itemOffsets[newCurrent],
       ];
-      const currentMove = { 0: 1, 1: 0, 2: 3, 3: 2 };
+      const { x: nextIndexOffsetX, y: nextIndexOffsetY } =
+        offset[moveDirection];
+      const { x: nextNewCurrentOffsetX, y: nextNewCurrentOffsetY } =
+        offset[currentMove[moveDirection]];
+      const [nextIndex, nextNewCurrent] = [
+        {
+          x: (prevIndex.x || 0) + nextIndexOffsetX,
+          y: (prevIndex.y || 0) + nextIndexOffsetY,
+        },
+        {
+          x: (prevNewCurrent.x || 0) + nextNewCurrentOffsetX,
+          y: (prevNewCurrent.y || 0) + nextNewCurrentOffsetY,
+        },
+      ];
+      console.log(nextIndex, nextNewCurrent);
+      // current应该怎么变化, 是否需要交换索引
       setNewCurrent(index);
       setItemOffsets((c) => ({
         ...c,
-        [index]: offset[moveDirection],
-        [newCurrent]: offset[currentMove[moveDirection]],
+        [index]: nextIndex,
+        [newCurrent]: nextNewCurrent,
       }));
     }
+    // if (moveDirection > -1) {
+    //   const offset = [
+    //     { x: 0, y: renderSize.height },
+    //     { x: 0, y: -renderSize.height },
+    //     { x: renderSize.width, y: 0 },
+    //     { x: -renderSize.width, y: 0 },
+    //   ];
+    //   const currentMove = { 0: 1, 1: 0, 2: 3, 3: 2 };
+    //   setNewCurrent(index);
+    //   setItemOffsets((c) => ({
+    //     ...c,
+    //     [index]: offset[moveDirection],
+    //     [newCurrent]: offset[currentMove[moveDirection]],
+    //   }));
+    // }
   };
 
   return (
@@ -245,6 +298,7 @@ const styles = StyleSheet.create({
     justifyContent: "flex-start",
     backgroundColor: "pink",
     position: "relative",
+    // gap: 5,
     // transform: [{ translateX: -207 }],
   },
   buttons: {
