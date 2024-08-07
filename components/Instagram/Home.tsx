@@ -37,6 +37,9 @@ const INITIAL_LIST = [
   { id: 9, emoji: "🍩", color: "#82cab2" },
 ];
 
+const ReAnimatedTouchableOpacity =
+  ReAnimated.createAnimatedComponent(TouchableOpacity);
+
 const Item = ({
   index,
   current,
@@ -67,8 +70,9 @@ const Item = ({
   }, [JSON.stringify(itemOffsets)]);
 
   return (
-    <TouchableOpacity
+    <ReAnimatedTouchableOpacity
       style={{
+        opacity: current === index ? 0 : 1,
         transform: [
           { translateX: itemOffsets[index]?.x || 0 },
           { translateY: itemOffsets[index]?.y || 0 },
@@ -77,25 +81,20 @@ const Item = ({
       key={uri + index}
       onPress={() => pressToMove(index)}
     >
-      <View style={{ width, height, padding: 2 }}>
-        <ReAnimated.Image
-          source={{ uri }}
-          entering={BounceIn}
-          exiting={BounceOut}
-          style={[
-            {
-              // width,
-              // height,
-              width: "100%",
-              height: "100%",
-              borderRadius: 10,
-            },
-            // @ts-ignore
-            animatedStyle,
-          ]}
-        />
-      </View>
-    </TouchableOpacity>
+      <ReAnimated.Image
+        source={{ uri }}
+        entering={BounceIn}
+        exiting={BounceOut}
+        style={[
+          {
+            width,
+            height,
+          },
+          // @ts-ignore
+          // animatedStyle,
+        ]}
+      />
+    </ReAnimatedTouchableOpacity>
   );
 };
 
@@ -116,14 +115,14 @@ const Home = () => {
           uri,
         } = state.assets[0];
         const clipWidth = Math.floor(originWidth / 4),
-          clipHeight = Math.floor(originHeight / 4);
+          clipHeight = Math.floor(originHeight / 10);
         const renderWidth = Math.floor(width / 4),
           renderHeight = Math.floor((clipHeight / clipWidth) * renderWidth);
 
         setRenderSize({ width: renderWidth, height: renderHeight });
 
         const clipPromises = [];
-        for (let i = 0; i < 4; i++) {
+        for (let i = 0; i < 10; i++) {
           for (let j = 0; j < 4; j++) {
             clipPromises.push(
               manipulateAsync(
@@ -147,7 +146,7 @@ const Home = () => {
           }
         }
         Promise.all(clipPromises).then((res) => {
-          const opacityIndex = Math.floor(Math.random() * 15);
+          const opacityIndex = Math.floor(Math.random() * 39);
           setCurrent(opacityIndex);
           setNewCurrent(opacityIndex);
           setClippedImageArray(
@@ -172,20 +171,17 @@ const Home = () => {
       newCurrent % 4 === 0 ? -1 : newCurrent - 1,
       newCurrent % 4 === 3 ? -1 : newCurrent + 1,
     ];
+    // 点击目标索引要用当前索引和偏移量来换算
+    const { x: currentIndexOffsetX, y: currentIndexOffsetY } = itemOffsets[
+      index
+    ] || { x: 0, y: 0 };
+    const transformedIndex =
+      index +
+      currentIndexOffsetX / renderSize.width +
+      (currentIndexOffsetY / renderSize.height) * 4;
     // 0 下移 1 上移 2 右移 3 左移
-    const moveDirection = moveableIndex.indexOf(index);
-    console.log(
-      "点击目标索引",
-      index,
-      "移动方向",
-      moveDirection,
-      "可移动索引",
-      moveableIndex,
-      "当前空白索引",
-      newCurrent,
-      "各项偏移",
-      itemOffsets,
-    );
+    const moveDirection = moveableIndex.indexOf(transformedIndex);
+
     const offset = [
         { x: 0, y: renderSize.height },
         { x: 0, y: -renderSize.height },
@@ -212,30 +208,13 @@ const Home = () => {
           y: (prevNewCurrent.y || 0) + nextNewCurrentOffsetY,
         },
       ];
-      console.log(nextIndex, nextNewCurrent);
-      // current应该怎么变化, 是否需要交换索引
-      setNewCurrent(index);
+      setNewCurrent(transformedIndex);
       setItemOffsets((c) => ({
         ...c,
         [index]: nextIndex,
-        [newCurrent]: nextNewCurrent,
+        [current]: nextNewCurrent,
       }));
     }
-    // if (moveDirection > -1) {
-    //   const offset = [
-    //     { x: 0, y: renderSize.height },
-    //     { x: 0, y: -renderSize.height },
-    //     { x: renderSize.width, y: 0 },
-    //     { x: -renderSize.width, y: 0 },
-    //   ];
-    //   const currentMove = { 0: 1, 1: 0, 2: 3, 3: 2 };
-    //   setNewCurrent(index);
-    //   setItemOffsets((c) => ({
-    //     ...c,
-    //     [index]: offset[moveDirection],
-    //     [newCurrent]: offset[currentMove[moveDirection]],
-    //   }));
-    // }
   };
 
   return (
